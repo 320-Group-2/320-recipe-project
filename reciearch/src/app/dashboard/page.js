@@ -18,7 +18,6 @@ export default function DashboardPage() {
   const [searchError, setSearchError] = useState(null);
   const [saveStatus, setSaveStatus] = useState({});
   const [reportStatus, setReportStatus] = useState({});
-  // const [expandedRecipeId, setExpandedRecipeId] = useState(null); // Remove old state
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [selectedRecipe, setSelectedRecipe] = useState(null); // State for the recipe in the modal
   const router = useRouter();
@@ -29,13 +28,12 @@ export default function DashboardPage() {
 
       if (error) {
         console.error('Error getting session:', error);
-        // Handle error appropriately, maybe redirect to an error page or login
         router.push('/login');
         return;
       }
 
       if (!session) {
-        router.push('/login'); // Redirect to login if no session
+        router.push('/login');
       } else {
         setUser(session.user);
         setLoading(false);
@@ -52,13 +50,13 @@ export default function DashboardPage() {
       const response = await fetch(detailUrl);
       if (!response.ok) {
         console.warn(`Failed to fetch details for recipe ${recipeId}: ${response.status}`);
-        return null; // Return null if fetch fails
+        return null;
       }
       const data = await response.json();
-      return data.meals ? data.meals[0] : null; // Return the first meal object or null
+      return data.meals ? data.meals[0] : null;
     } catch (error) {
       console.warn(`Error fetching details for recipe ${recipeId}:`, error);
-      return null; // Return null on error
+      return null;
     }
   };
 
@@ -71,7 +69,7 @@ export default function DashboardPage() {
       if (ingredient && ingredient.trim() !== "") {
         ingredients.push(ingredient.trim().toLowerCase());
       } else {
-        break; // Stop if ingredient is null or empty
+        break;
       }
     }
     return ingredients;
@@ -102,7 +100,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // Use the first 'include' ingredient for the initial API call
     const primaryIngredient = Array.from(includeSet)[0];
     const searchUrl = `https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(primaryIngredient)}`;
 
@@ -112,50 +109,30 @@ export default function DashboardPage() {
       const initialData = await initialResponse.json();
 
       if (!initialData.meals) {
-        setRecipes([]); // No initial matches
+        setRecipes([]);
         setIsSearching(false);
         return;
       }
 
-      // Fetch details for all initial results concurrently
       const detailPromises = initialData.meals.map(meal => fetchRecipeDetails(meal.idMeal));
-      const detailedRecipes = (await Promise.all(detailPromises)).filter(Boolean); // Filter out null results
+      const detailedRecipes = (await Promise.all(detailPromises)).filter(Boolean);
 
-      // Perform client-side filtering
       const filteredRecipes = detailedRecipes.filter(recipe => {
         const recipeIngredients = getIngredientsFromRecipe(recipe);
         const recipeIngredientsSet = new Set(recipeIngredients);
 
-        // Check exclusion criteria first
         for (const excludeIng of excludeSet) {
-          if (recipeIngredientsSet.has(excludeIng)) {
-            return false; // Exclude if it contains any excluded ingredient
-          }
+          if (recipeIngredientsSet.has(excludeIng)) return false;
         }
-
-        // Check inclusion criteria
         for (const includeIng of includeSet) {
-          if (!recipeIngredientsSet.has(includeIng)) {
-            return false; // Exclude if it's missing an included ingredient
-          }
+          if (!recipeIngredientsSet.has(includeIng)) return false;
         }
-
-        // Check "Only These Ingredients" mode if active
         if (onlyMode) {
-           // Allow for common staples implicitly? Or strict match? Let's be strict for now.
-           // Check if the recipe contains *any* ingredient NOT in the includeSet
            for (const recipeIng of recipeIngredientsSet) {
-               if (!includeSet.has(recipeIng)) {
-                   // Optional: Allow common staples like salt, pepper, water, oil?
-                   // const commonStaples = new Set(['salt', 'pepper', 'water', 'oil', 'olive oil', 'sugar', 'flour']);
-                   // if (!commonStaples.has(recipeIng)) {
-                       return false; // Found an ingredient not in the 'include' list
-                   // }
-               }
+               if (!includeSet.has(recipeIng)) return false;
            }
         }
-
-        return true; // Recipe passes all checks
+        return true;
       });
 
       setRecipes(filteredRecipes);
@@ -169,26 +146,27 @@ export default function DashboardPage() {
     }
   };
 
-  // --- Save Recipe Logic (Updated for new schema) ---
+  // --- Save Recipe Logic (Corrected for mealdb_id array type) ---
   const handleSaveRecipe = async (mealDbRecipeId, mealDbRecipeName) => {
-    // mealDbRecipeId is the ID from MealDB (string), mealDbRecipeName is the name
     if (!user) {
       console.error("User not logged in, cannot save recipe.");
-      setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'error' })); // Use MealDB ID for status key
+      setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'error' }));
       return;
     }
 
     setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'saving' }));
 
+    // mealDbRecipeId is already a string, pass it directly
+
+
     try {
       let internalRecipeId;
 
-      // 1. Find or Create Recipe in 'Recipe List'
-      // Check if recipe name already exists
+      // 1. Find or Create/Update Recipe in 'Recipe List'
       const { data: existingRecipe, error: findError } = await supabase
         .from('Recipe List')
-        .select('"RecipeID"') // Select the internal ID, ensure correct quoting for case sensitivity
-        .eq('"RecipeName"', mealDbRecipeName) // Ensure correct quoting
+        .select('"RecipeID", mealdb_id')
+        .eq('"RecipeName"', mealDbRecipeName)
         .maybeSingle();
 
       if (findError) {
@@ -197,36 +175,51 @@ export default function DashboardPage() {
       }
 
       if (existingRecipe) {
-        internalRecipeId = existingRecipe.RecipeID; // Use existing internal ID
+        internalRecipeId = existingRecipe.RecipeID;
         console.log(`Recipe "${mealDbRecipeName}" found with internal ID: ${internalRecipeId}`);
+        // Update mealdb_id only if it's currently null and we have a new ID
+        if (!existingRecipe.mealdb_id && mealDbRecipeId) { // Use mealDbRecipeId directly
+          console.log(`Updating existing recipe ${internalRecipeId} with mealdb_id: ${mealDbRecipeId}`);
+          const { error: updateError } = await supabase
+            .from('Recipe List')
+            .update({ mealdb_id: mealDbRecipeId }) // Pass the string directly
+            .eq('"RecipeID"', internalRecipeId);
+          if (updateError) {
+            console.error(`Error updating mealdb_id for RecipeID ${internalRecipeId}:`, updateError);
+            console.warn(`Could not update mealdb_id for existing recipe. Favoriting might proceed without it.`);
+          }
+        }
       } else {
-        // Insert into 'Recipe List' if not found
-        console.log(`Recipe "${mealDbRecipeName}" not found, inserting...`);
+        // Insert new recipe, including the mealdb_id string
+        console.log(`Recipe "${mealDbRecipeName}" not found, inserting with mealdb_id: ${mealDbRecipeId}...`);
         const { data: newRecipe, error: insertRecipeError } = await supabase
           .from('Recipe List')
-          .insert([{ "RecipeName": mealDbRecipeName }]) // Ensure correct quoting
-          .select('"RecipeID"') // Select the newly generated internal ID
-          .single(); // Expecting a single row back
+          .insert([{ "RecipeName": mealDbRecipeName, mealdb_id: mealDbRecipeId }]) // Pass the string directly
+          .select('"RecipeID"')
+          .single();
 
         if (insertRecipeError) {
+          // Log the specific Supabase error
           console.error("Error inserting into Recipe List:", insertRecipeError);
-          throw new Error(`Failed to insert into Recipe List: ${insertRecipeError.message}`);
+          // Provide a more informative error message
+          throw new Error(`Failed to insert into Recipe List: ${insertRecipeError.message || 'Unknown error'}`);
         }
         internalRecipeId = newRecipe.RecipeID;
-        console.log(`Recipe "${mealDbRecipeName}" inserted with internal ID: ${internalRecipeId}`);
+        console.log(`Recipe "${mealDbRecipeName}" inserted with internal ID: ${internalRecipeId} and mealdb_id: ${mealDbRecipeId}`); // Log the string ID
       }
 
       // 2. Insert into 'Favorites List' using internalRecipeId
       if (!internalRecipeId) {
-         throw new Error("Failed to get internal RecipeID."); // Should not happen if logic above is correct
+         console.error("Failed to obtain internal RecipeID before favoriting.");
+         throw new Error("Failed to get internal RecipeID.");
       }
 
       const { error: insertFavoriteError } = await supabase
         .from('Favorites List')
-        .insert([{ userid: user.id, recipeid: internalRecipeId }]); // Use lowercase column names
+        .insert([{ userid: user.id, recipeid: internalRecipeId }]);
 
       if (insertFavoriteError) {
-        if (insertFavoriteError.code === '23505') { // Handle unique constraint violation (already favorited)
+        if (insertFavoriteError.code === '23505') {
           console.warn(`Favorite link for user ${user.id} and recipe ${internalRecipeId} already exists.`);
           setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'already_saved' }));
         } else {
@@ -240,7 +233,8 @@ export default function DashboardPage() {
 
     } catch (error) {
       console.error("Detailed error in handleSaveRecipe:", error);
-      setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'error' }));
+      // Ensure the specific error message is displayed if available
+      setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'error', message: error.message || 'An unexpected error occurred' }));
     }
   };
 
@@ -260,20 +254,17 @@ export default function DashboardPage() {
   const handleReportRecipe = (recipeId, recipeName) => {
     console.log(`Reporting recipe: ID=${recipeId}, Name=${recipeName}`);
     setReportStatus(prev => ({ ...prev, [recipeId]: 'reported' }));
-    // Reset status after a short delay for visual feedback
     setTimeout(() => {
       setReportStatus(prev => ({ ...prev, [recipeId]: undefined }));
-    }, 1500); // Reset after 1.5 seconds
+    }, 1500);
   };
 
 
   if (loading) {
-    return <div>Loading...</div>; // Or a proper loading spinner
+    return <div>Loading...</div>;
   }
 
   if (!user) {
-    // This case should ideally be handled by the redirect,
-    // but it's good practice to have a fallback.
     return <div>Redirecting to login...</div>;
   }
 
@@ -284,7 +275,7 @@ export default function DashboardPage() {
       opacity: 1,
       y: 0,
       transition: {
-        delay: i * 0.05, // Stagger animation
+        delay: i * 0.05,
         type: 'spring',
         stiffness: 100,
         damping: 15,
@@ -296,29 +287,24 @@ export default function DashboardPage() {
   // --- Main Dashboard Content ---
   return (
     <div className="min-h-screen bg-gray-100">
-       <Navbar userEmail={user?.email} /> {/* Add Navbar here */}
+       <Navbar userEmail={user?.email} />
        <main className="container mx-auto px-4 py-8">
-         {/* Header section moved below Navbar */}
-         <div className="flex justify-between items-center mb-6 pt-4"> {/* Added padding top */}
+         <div className="flex justify-between items-center mb-6 pt-4">
             <h1 className="text-3xl font-bold text-gray-800">Recipe Search</h1>
          </div>
          <p className="mb-6 text-gray-600">Welcome, {user.email}! Find your next favorite recipe.</p>
 
-         {/* Ingredient Search Component */}
          <IngredientSearch onSearch={handleSearch} />
 
-         {/* Recipe Results Section */}
          <div className="mt-10">
            <h2 className="text-2xl font-semibold mb-4 text-gray-700">Search Results</h2>
            {isSearching && (
              <div className="flex justify-center items-center py-10">
                <p className="text-indigo-600">Searching for recipes...</p>
-               {/* Optional: Add a spinner */}
              </div>
            )}
            {searchError && <p className="text-red-600 bg-red-100 p-3 rounded-md">Error: {searchError}</p>}
 
-           {/* Animated Recipe Grid */}
            <AnimatePresence>
              {!isSearching && !searchError && recipes.length === 0 && (
                <motion.p
@@ -332,7 +318,7 @@ export default function DashboardPage() {
            </AnimatePresence>
 
            <motion.div
-             layout // Animate layout changes
+             layout
              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
            >
              <AnimatePresence>
@@ -345,12 +331,11 @@ export default function DashboardPage() {
                     exit="exit"
                     custom={index}
                     layout
-                    className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col" // Removed transform for parent, apply to inner content if needed
+                    className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col"
                   >
-                    {/* Make the main content area clickable to open the modal */}
                     <div
-                      className="cursor-pointer flex-grow" // Added flex-grow
-                      onClick={() => handleOpenModal(recipe)} // Use new handler
+                      className="cursor-pointer flex-grow"
+                      onClick={() => handleOpenModal(recipe)}
                     >
                       <img src={recipe.strMealThumb} alt={recipe.strMeal} className="w-full h-48 object-cover" />
                       <div className="p-4">
@@ -358,8 +343,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Action Buttons - Remain at the bottom */}
-                    <div className="p-4 pt-2 border-t border-gray-100 mt-auto"> {/* Ensure buttons are at bottom */}
+                    <div className="p-4 pt-2 border-t border-gray-100 mt-auto">
                        <div className="flex justify-end space-x-2">
                          <motion.button
                            whileTap={{ scale: 0.95 }}
@@ -369,7 +353,7 @@ export default function DashboardPage() {
                            saveStatus[recipe.idMeal] === 'saved' ? 'bg-green-600 text-white cursor-default' :
                            saveStatus[recipe.idMeal] === 'already_saved' ? 'bg-blue-500 text-white cursor-default' :
                            saveStatus[recipe.idMeal] === 'error' ? 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500' :
-                           'bg-green-500 text-white hover:bg-green-600 focus:ring-green-500' // Default idle state
+                           'bg-green-500 text-white hover:bg-green-600 focus:ring-green-500'
                          }`}
                          title={
                             saveStatus[recipe.idMeal] === 'saved' ? 'Saved!' :
@@ -380,7 +364,7 @@ export default function DashboardPage() {
                        >
                          {saveStatus[recipe.idMeal] === 'saving' ? 'Saving...' :
                           saveStatus[recipe.idMeal] === 'saved' ? 'Saved ✓' :
-                          saveStatus[recipe.idMeal] === 'already_saved' ? 'Saved' : // Show 'Saved' if already present
+                          saveStatus[recipe.idMeal] === 'already_saved' ? 'Saved' :
                           saveStatus[recipe.idMeal] === 'error' ? 'Error!' :
                           'Save'}
                        </motion.button>
@@ -397,6 +381,10 @@ export default function DashboardPage() {
                          {reportStatus[recipe.idMeal] === 'reported' ? 'Reported!' : 'Report'}
                        </motion.button>
                      </div>
+                     {/* Display specific error message for save action */}
+                     {saveStatus[recipe.idMeal] === 'error' && saveStatus[recipe.idMeal]?.message && (
+                       <p className="text-xs text-red-500 mt-1 text-right">{saveStatus[recipe.idMeal].message}</p>
+                     )}
                    </div>
                  </motion.div>
                ))}
@@ -405,7 +393,6 @@ export default function DashboardPage() {
          </div>
        </main>
 
-       {/* Render Recipe Modal */}
        <RecipeModal recipe={selectedRecipe} onClose={handleCloseModal} />
     </div>
   );
