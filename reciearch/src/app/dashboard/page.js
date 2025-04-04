@@ -286,11 +286,11 @@ export default function DashboardPage() {
 
   // --- Main Dashboard Content ---
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#FFF1D5]">
        <Navbar userEmail={user?.email} />
        <main className="container mx-auto px-4 py-8">
          <div className="flex justify-between items-center mb-6 pt-4">
-            <h1 className="text-3xl font-bold text-gray-800">Recipe Search</h1>
+            <h1 className="text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-blue-300 to-purple-300">Recipe Search</h1>
          </div>
          <p className="mb-6 text-gray-600">Welcome, {user.email}! Find your next favorite recipe.</p>
 
