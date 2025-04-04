@@ -41,18 +41,18 @@ const Login = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4"
+      className="min-h-screen flex items-center justify-center bg-[#FFF1D5] p-4"
     >
       <motion.div
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden"
       >
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-300 to-purple-300 p-6 text-white">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <FiLogIn className="inline-block" /> Sign In
           </h2>
-          <p className="text-blue-100 mt-1">Welcome back!</p>
+          <p className="text-blue-100 mt-1">Welcome back to ReciSearch!</p>
         </div>
 
         <div className="p-6">
@@ -74,7 +74,7 @@ const Login = () => {
               <label className="block text-gray-700 mb-1">Email Address</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiMail className="text-gray-400" />
+                  <FiMail className="text-gray-500" />
                 </div>
                 <input
                   type="email"
