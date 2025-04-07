@@ -260,12 +260,20 @@ export default function DashboardPage() {
   };
 
 
+  // if (loading) {
+  //   return <div>Loading...</div>;
+  // }
+
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="flex justify-center items-center min-h-screen bg-[#FFF1D5]">
+      <p className="text-indigo-600">Loading...</p>
+    </div>;
   }
 
   if (!user) {
-    return <div>Redirecting to login...</div>;
+    return <div className="flex justify-center items-center min-h-screen bg-[#FFF1D5]">
+      <p className="text-red-600">Redirecting to login...</p>
+    </div>;
   }
 
   // Animation variants for recipe cards
@@ -296,101 +304,103 @@ export default function DashboardPage() {
 
          <IngredientSearch onSearch={handleSearch} />
 
-         <div className="mt-10">
-           <h2 className="text-2xl font-semibold mb-4 text-gray-700">Search Results</h2>
-           {isSearching && (
-             <div className="flex justify-center items-center py-10">
-               <p className="text-indigo-600">Searching for recipes...</p>
-             </div>
-           )}
-           {searchError && <p className="text-red-600 bg-red-100 p-3 rounded-md">Error: {searchError}</p>}
-
-           <AnimatePresence>
-             {!isSearching && !searchError && recipes.length === 0 && (
-               <motion.p
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1 }}
-                 className="text-center text-gray-500 py-10"
-               >
-                 No recipes found matching your criteria. Try adjusting your ingredients.
-               </motion.p>
+         {recipes.length > 0 || isSearching || searchError ? (
+           <div className="mt-10">
+             <h2 className="text-2xl font-semibold mb-4 text-gray-700">Search Results</h2>
+             {isSearching && (
+               <div className="flex justify-center items-center py-10">
+                 <p className="text-indigo-600">Searching for recipes...</p>
+               </div>
              )}
-           </AnimatePresence>
+             {searchError && <p className="text-red-600 bg-red-100 p-3 rounded-md">Error: {searchError}</p>}
 
-           <motion.div
-             layout
-             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-           >
              <AnimatePresence>
-               {recipes.map((recipe, index) => (
-                 <motion.div
-                   key={recipe.idMeal}
-                   variants={cardVariants}
-                   initial="hidden"
-                   animate="visible"
-                    exit="exit"
-                    custom={index}
-                    layout
-                    className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col"
-                  >
-                    <div
-                      className="cursor-pointer flex-grow"
-                      onClick={() => handleOpenModal(recipe)}
-                    >
-                      <img src={recipe.strMealThumb} alt={recipe.strMeal} className="w-full h-48 object-cover" />
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-2 text-gray-800">{recipe.strMeal}</h3>
-                      </div>
-                    </div>
+               {!isSearching && !searchError && recipes.length === 0 && (
+                 <motion.p
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   className="text-center text-gray-500 py-10"
+                 >
+                   No recipes found matching your criteria. Try adjusting your ingredients.
+                 </motion.p>
+               )}
+             </AnimatePresence>
 
-                    <div className="p-4 pt-2 border-t border-gray-100 mt-auto">
+             <motion.div
+               layout
+               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+             >
+               <AnimatePresence>
+                 {recipes.map((recipe, index) => (
+                   <motion.div
+                     key={recipe.idMeal}
+                     variants={cardVariants}
+                     initial="hidden"
+                     animate="visible"
+                     exit="exit"
+                     custom={index}
+                     layout
+                     className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col"
+                   >
+                     <div
+                       className="cursor-pointer flex-grow"
+                       onClick={() => handleOpenModal(recipe)}
+                     >
+                       <img src={recipe.strMealThumb} alt={recipe.strMeal} className="w-full h-48 object-cover" />
+                       <div className="p-4">
+                         <h3 className="font-semibold text-lg mb-2 text-gray-800">{recipe.strMeal}</h3>
+                       </div>
+                     </div>
+
+                     <div className="p-4 pt-2 border-t border-gray-100 mt-auto">
                        <div className="flex justify-end space-x-2">
                          <motion.button
                            whileTap={{ scale: 0.95 }}
-                         onClick={() => handleSaveRecipe(recipe.idMeal, recipe.strMeal)}
-                         className={`px-3 py-1 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out ${
-                           saveStatus[recipe.idMeal] === 'saving' ? 'bg-gray-400 text-white cursor-not-allowed' :
-                           saveStatus[recipe.idMeal] === 'saved' ? 'bg-green-600 text-white cursor-default' :
-                           saveStatus[recipe.idMeal] === 'already_saved' ? 'bg-blue-500 text-white cursor-default' :
-                           saveStatus[recipe.idMeal] === 'error' ? 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500' :
-                           'bg-green-500 text-white hover:bg-green-600 focus:ring-green-500'
-                         }`}
-                         title={
-                            saveStatus[recipe.idMeal] === 'saved' ? 'Saved!' :
-                            saveStatus[recipe.idMeal] === 'already_saved' ? 'Already Saved' :
-                            'Save Recipe'
-                         }
-                         disabled={saveStatus[recipe.idMeal] === 'saving' || saveStatus[recipe.idMeal] === 'saved' || saveStatus[recipe.idMeal] === 'already_saved'}
-                       >
-                         {saveStatus[recipe.idMeal] === 'saving' ? 'Saving...' :
-                          saveStatus[recipe.idMeal] === 'saved' ? 'Saved ✓' :
-                          saveStatus[recipe.idMeal] === 'already_saved' ? 'Saved' :
-                          saveStatus[recipe.idMeal] === 'error' ? 'Error!' :
-                          'Save'}
-                       </motion.button>
-                       <motion.button
-                         whileTap={{ scale: 0.95 }}
-                         onClick={() => handleReportRecipe(recipe.idMeal, recipe.strMeal)}
-                         className={`px-3 py-1 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out ${
-                            reportStatus[recipe.idMeal] === 'reported' ? 'bg-orange-500 text-white cursor-default' :
-                            'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500'
-                         }`}
-                         title="Report Recipe"
-                         disabled={reportStatus[recipe.idMeal] === 'reported'}
-                       >
-                         {reportStatus[recipe.idMeal] === 'reported' ? 'Reported!' : 'Report'}
-                       </motion.button>
+                           onClick={() => handleSaveRecipe(recipe.idMeal, recipe.strMeal)}
+                           className={`px-3 py-1 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out ${
+                             saveStatus[recipe.idMeal] === 'saving' ? 'bg-gray-400 text-white cursor-not-allowed' :
+                             saveStatus[recipe.idMeal] === 'saved' ? 'bg-green-600 text-white cursor-default' :
+                             saveStatus[recipe.idMeal] === 'already_saved' ? 'bg-blue-500 text-white cursor-default' :
+                             saveStatus[recipe.idMeal] === 'error' ? 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500' :
+                             'bg-green-500 text-white hover:bg-green-600 focus:ring-green-500'
+                           }`}
+                           title={
+                             saveStatus[recipe.idMeal] === 'saved' ? 'Saved!' :
+                             saveStatus[recipe.idMeal] === 'already_saved' ? 'Already Saved' :
+                             'Save Recipe'
+                           }
+                           disabled={saveStatus[recipe.idMeal] === 'saving' || saveStatus[recipe.idMeal] === 'saved' || saveStatus[recipe.idMeal] === 'already_saved'}
+                         >
+                           {saveStatus[recipe.idMeal] === 'saving' ? 'Saving...' :
+                            saveStatus[recipe.idMeal] === 'saved' ? 'Saved ✓' :
+                            saveStatus[recipe.idMeal] === 'already_saved' ? 'Saved' :
+                            saveStatus[recipe.idMeal] === 'error' ? 'Error!' :
+                            'Save'}
+                         </motion.button>
+                         <motion.button
+                           whileTap={{ scale: 0.95 }}
+                           onClick={() => handleReportRecipe(recipe.idMeal, recipe.strMeal)}
+                           className={`px-3 py-1 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out ${
+                              reportStatus[recipe.idMeal] === 'reported' ? 'bg-orange-500 text-white cursor-default' :
+                              'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500'
+                           }`}
+                           title="Report Recipe"
+                           disabled={reportStatus[recipe.idMeal] === 'reported'}
+                         >
+                           {reportStatus[recipe.idMeal] === 'reported' ? 'Reported!' : 'Report'}
+                         </motion.button>
+                       </div>
+                       {/* Display specific error message for save action */}
+                       {saveStatus[recipe.idMeal] === 'error' && saveStatus[recipe.idMeal]?.message && (
+                         <p className="text-xs text-red-500 mt-1 text-right">{saveStatus[recipe.idMeal].message}</p>
+                       )}
                      </div>
-                     {/* Display specific error message for save action */}
-                     {saveStatus[recipe.idMeal] === 'error' && saveStatus[recipe.idMeal]?.message && (
-                       <p className="text-xs text-red-500 mt-1 text-right">{saveStatus[recipe.idMeal].message}</p>
-                     )}
-                   </div>
-                 </motion.div>
-               ))}
-             </AnimatePresence>
-           </motion.div>
-         </div>
+                   </motion.div>
+                 ))}
+               </AnimatePresence>
+             </motion.div>
+           </div>
+         ) : null}
        </main>
 
        <RecipeModal recipe={selectedRecipe} onClose={handleCloseModal} />

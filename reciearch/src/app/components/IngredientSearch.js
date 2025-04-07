@@ -12,7 +12,7 @@ export default function IngredientSearch({ onSearch }) {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [onlyMode, setOnlyMode] = useState(false); // State for "Only These Ingredients" mode
 
-  // Fetch all ingredients from MealDB on component mount
+  // fetch all ingredients from MealDB on component mount
   useEffect(() => {
     const fetchIngredients = async () => {
       setIsLoadingIngredients(true);
