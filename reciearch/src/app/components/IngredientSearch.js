@@ -96,7 +96,7 @@ export default function IngredientSearch({ onSearch }) {
     <div className="mb-6 p-4 bg-white rounded-lg shadow-md">
       {isLoadingIngredients ? (
         <div className="flex justify-center items-center h-20">
-          <p className="text-gray-500">Loading ingredients...</p>
+          <p className="text-gray-900">Loading ingredients...</p>
           {/* Add a spinner here if desired */}
         </div>
       ) : (
@@ -111,7 +111,7 @@ export default function IngredientSearch({ onSearch }) {
               value={searchTerm}
               onChange={handleInputChange}
               placeholder="e.g., chicken, onion, garlic"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out text-black"
+              className="w-full px-4 py-2 border border-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out text-black"
               autoComplete="off"
             />
             {/* Autocomplete Suggestions Dropdown w/ Animation */}
@@ -124,12 +124,12 @@ export default function IngredientSearch({ onSearch }) {
                   transition={{ duration: 0.2 }}
                   className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
                 >
-                  {isLoadingSuggestions && <li className="px-3 py-2 text-sm text-gray-500">Loading...</li>}
+                  {isLoadingSuggestions && <li className="px-3 py-2 text-sm text-gray-400">Loading...</li>}
                   {!isLoadingSuggestions && suggestions.map((suggestion) => (
                     <li
-                      key={suggestion} // Use ingredient name as key if unique
+                      key={suggestion}
                       onClick={() => handleSelectSuggestion(suggestion)}
-                      className="px-4 py-2 cursor-pointer hover:bg-indigo-50 transition duration-150 ease-in-out"
+                      className="px-4 py-2 cursor-pointer hover:bg-indigo-50 transition duration-150 ease-in-out text-gray-700"
                     >
                       {suggestion}
                     </li>
@@ -158,7 +158,7 @@ export default function IngredientSearch({ onSearch }) {
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                       className="flex items-center justify-between p-2 border border-gray-200 rounded-md bg-gray-50 shadow-sm"
                     >
-                      <span className="text-gray-700">{ingredient.name}</span>
+                      <span className="text-black">{ingredient.name}</span>
                       <div className="flex items-center space-x-2">
                         <motion.button
                           whileTap={{ scale: 0.95 }}
@@ -198,9 +198,9 @@ export default function IngredientSearch({ onSearch }) {
                   type="checkbox"
                   checked={onlyMode}
                   onChange={(e) => setOnlyMode(e.target.checked)}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-900 rounded"
                 />
-                <label htmlFor="only-mode-checkbox" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="only-mode-checkbox" className="ml-2 block text-sm text-gray-900">
                   Find recipes with *only* these ingredients
                 </label>
               </div>
