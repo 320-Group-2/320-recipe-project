@@ -39,7 +39,7 @@ const RecipeCard = React.memo(({ fav, details, isLoadingDetails, onClick, onRemo
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }} // Simple fade for grid items
-      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out overflow-hidden cursor-pointer"
+      className="bg-gradient-to-br from-blue-300 to-purple-300 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out overflow-hidden cursor-pointer"
       onClick={onClick} // Trigger expansion
     >
       <div className="p-4">
@@ -52,7 +52,7 @@ const RecipeCard = React.memo(({ fav, details, isLoadingDetails, onClick, onRemo
           </div>
         )}
         <div className="flex justify-between items-start">
-          <h3 className="font-semibold text-lg text-gray-800 truncate mr-2 flex-1">{fav.recipe_name}</h3>
+          <h3 className="font-semibold text-lg text-[#FFF1D5] truncate mr-2 flex-1">{fav.recipe_name}</h3>
           <button
             onClick={(e) => {
               e.stopPropagation(); // Prevent card click when removing
@@ -321,10 +321,10 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#FFF1D5]">
       <Navbar userEmail={user?.email} />
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">My Favorite Recipes</h1>
+        <h1 className="text-3xl font-bold text-[#9FB3DF] mb-6">Favorite Recipes</h1>
 
         {fetchError && <p className="text-red-600 bg-red-100 p-3 rounded-md mb-4">Error: {fetchError}</p>}
 
