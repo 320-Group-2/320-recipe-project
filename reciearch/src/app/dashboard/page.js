@@ -9,6 +9,7 @@ import IngredientSearch from '../components/IngredientSearch';
 import Navbar from '../components/Navbar';
 import RecipeModal from '../components/RecipeModal'; // Import RecipeModal
 import { motion, AnimatePresence } from 'framer-motion';
+import emailjs from '@emailjs/browser';
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -250,13 +251,29 @@ export default function DashboardPage() {
     setSelectedRecipe(null);
   };
 
+
   // --- Report Recipe Logic ---
   const handleReportRecipe = (recipeId, recipeName) => {
     console.log(`Reporting recipe: ID=${recipeId}, Name=${recipeName}`);
     setReportStatus(prev => ({ ...prev, [recipeId]: 'reported' }));
-    setTimeout(() => {
-      setReportStatus(prev => ({ ...prev, [recipeId]: undefined }));
-    }, 1500);
+
+    // Commented the email out until presentation (it works)
+    // emailjs.send(
+    //   process.env.NEXT_PUBLIC_SERVICE_ID,
+    //   process.env.NEXT_PUBLIC_TEMPLATE_ID,
+    //   {
+    //     email: 'devforrecisearch@gmail.com',
+    //     message: `User has reported ${recipeId}, Name: ${recipeName} `,
+    //   },
+    //   process.env.NEXT_PUBLIC_EMAIL_PUBLIC_KEY
+    // ).then(
+    //   (result) => {
+    //     console.log('Email sent!', result.text);
+    //   },
+    //   (error) => {
+    //     console.error('Email failed to send:', error.text);
+    //   }
+    // );
   };
 
 
