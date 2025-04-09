@@ -33,7 +33,7 @@ const RecipeCard = React.memo(({ fav, details, isLoadingDetails, onClick, onRemo
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }} // Simple fade for grid items
-      className="bg-gradient-to-br from-blue-300 to-purple-300 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out overflow-hidden cursor-pointer"
+      className="bg-[#9EC6F3] rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out overflow-hidden cursor-pointer"
       onClick={onClick} // Trigger expansion
     >
       <div className="p-4">
