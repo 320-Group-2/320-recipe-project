@@ -169,7 +169,7 @@ export default function IngredientSearch({ onSearch }) {
                               : 'bg-red-100 text-red-700 hover:bg-red-200'
                           }`}
                         >
-                          {ingredient.mode === 'include' ? 'Include' : 'Exclude'}
+                          {ingredient.mode === 'include' ? 'Included' : 'Excluded'}
                         </motion.button>
                         <motion.button
                           whileTap={{ scale: 0.9 }}
