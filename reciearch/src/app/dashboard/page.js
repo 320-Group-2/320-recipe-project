@@ -1,13 +1,12 @@
 'use client';
 
-'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../supabaseClient';
 import IngredientSearch from '../components/IngredientSearch';
 import Navbar from '../components/Navbar';
 import RecipeModal from '../components/RecipeModal'; // Import RecipeModal
+import ReportModal from '../components/ReportModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import emailjs from '@emailjs/browser';
 
@@ -21,6 +20,8 @@ export default function DashboardPage() {
   const [reportStatus, setReportStatus] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [selectedRecipe, setSelectedRecipe] = useState(null); // State for the recipe in the modal
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportingRecipe, setReportingRecipe] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -251,30 +252,30 @@ export default function DashboardPage() {
     setSelectedRecipe(null);
   };
 
-
   // --- Report Recipe Logic ---
-  const handleReportRecipe = (recipeId, recipeName) => {
-    console.log(`Reporting recipe: ID=${recipeId}, Name=${recipeName}`);
+  const handleReportRecipe = (recipeId, recipeName, comment) => {
+    console.log(`Reporting recipe: ID=${recipeId}, Name=${recipeName}, Comment=${comment}`);
     setReportStatus(prev => ({ ...prev, [recipeId]: 'reported' }));
-
-    // Commented the email out until presentation (it works)
-    // emailjs.send(
-    //   process.env.NEXT_PUBLIC_SERVICE_ID,
-    //   process.env.NEXT_PUBLIC_TEMPLATE_ID,
-    //   {
-    //     email: 'devforrecisearch@gmail.com',
-    //     message: `User has reported ${recipeId}, Name: ${recipeName} `,
-    //   },
-    //   process.env.NEXT_PUBLIC_EMAIL_PUBLIC_KEY
-    // ).then(
-    //   (result) => {
-    //     console.log('Email sent!', result.text);
-    //   },
-    //   (error) => {
-    //     console.error('Email failed to send:', error.text);
-    //   }
-    // );
+  
+    emailjs.send(
+      process.env.NEXT_PUBLIC_SERVICE_ID,
+      process.env.NEXT_PUBLIC_TEMPLATE_ID,
+      {
+        email: 'devforrecisearch@gmail.com',
+        message: `User has reported Recipe ID: ${recipeId}, Name: ${recipeName}`,
+        comment: comment || 'No additional comment provided',
+      },
+      process.env.NEXT_PUBLIC_EMAIL_PUBLIC_KEY
+    ).then(
+      (result) => {
+        console.log('Email sent!', result.text);
+      },
+      (error) => {
+        console.error('Email failed to send:', error.text);
+      }
+    );
   };
+  
 
 
   // if (loading) {
@@ -396,7 +397,10 @@ export default function DashboardPage() {
                          </motion.button>
                          <motion.button
                            whileTap={{ scale: 0.95 }}
-                           onClick={() => handleReportRecipe(recipe.idMeal, recipe.strMeal)}
+                           onClick={() => {
+                            setReportingRecipe(recipe);
+                            setReportModalOpen(true);
+                          }}
                            className={`px-3 py-1 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out ${
                               reportStatus[recipe.idMeal] === 'reported' ? 'bg-orange-500 text-white cursor-default' :
                               'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500'
@@ -419,8 +423,19 @@ export default function DashboardPage() {
            </div>
          ) : null}
        </main>
+      
+      <RecipeModal recipe={selectedRecipe} onClose={handleCloseModal} />
 
-       <RecipeModal recipe={selectedRecipe} onClose={handleCloseModal} />
+      {reportModalOpen && reportingRecipe && (
+        <ReportModal
+          recipe={reportingRecipe}
+          onClose={() => {
+            setReportModalOpen(false);
+            setReportingRecipe(null);
+          }}
+          onSubmit={handleReportRecipe}
+        />
+      )}
     </div>
   );
 }
