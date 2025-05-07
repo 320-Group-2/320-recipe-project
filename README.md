@@ -38,11 +38,11 @@ A web application allowing users to search for recipes based on ingredients, vie
 ```mermaid
 graph LR
     subgraph "User Interface (Next.js)"
-        Dashboard[/"/dashboard" (page.js)]
-        Favorites[/"/favorites" (page.js)]
-        Modal[RecipeModal Component]
-        Search[IngredientSearch Component]
-        FavCard[Favorite Card (in favorites/page.js)]
+        Dashboard["/dashboard (page.js)"]
+        Favorites["/favorites (page.js)"]
+        Modal["RecipeModal Component"]
+        Search["IngredientSearch Component"]
+        FavCard["Favorite Card (in favorites/page.js)"]
     end
 
     subgraph "Backend / Data"
@@ -59,18 +59,18 @@ graph LR
     Dashboard -- Opens --> Modal
     Modal -- Displays Data --> User
     User -- Saves Favorite --> Dashboard
-    Dashboard -- Writes (RecipeName, mealdb_id) --> SupabaseDB[Recipe List]
-    Dashboard -- Writes (UserID, RecipeID) --> SupabaseDB[Favorites List]
+    Dashboard -- Writes (RecipeName, mealdb_id) --> SupabaseDB
+    Dashboard -- Writes (UserID, RecipeID) --> SupabaseDB
 
     User -- Navigates --> Favorites
-    Favorites -- Fetches Favorite RecipeIDs --> SupabaseDB[Favorites List]
-    Favorites -- Fetches (RecipeName, mealdb_id) --> SupabaseDB[Recipe List]
+    Favorites -- Fetches Favorite RecipeIDs --> SupabaseDB
+    Favorites -- Fetches (RecipeName, mealdb_id) --> SupabaseDB
     Favorites -- Renders Cards --> User
     User -- Clicks Favorite Card --> FavCard
     FavCard -- Fetches Details (using mealdb_id) --> MealDBAPI
     FavCard -- Expands/Displays Details --> User
     User -- Removes Favorite --> FavCard
-    FavCard -- Deletes --> SupabaseDB[Favorites List]
+    FavCard -- Deletes --> SupabaseDB
 
     %% Styling
     classDef page fill:#D6EAF8,stroke:#333,stroke-width:2px;
@@ -84,6 +84,7 @@ graph LR
     class SupabaseDB db;
     class MealDBAPI api;
     class User user;
+```
 
 ## Setup & Running
 
