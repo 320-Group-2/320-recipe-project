@@ -22,6 +22,8 @@ export default function DashboardPage() {
   const [selectedRecipe, setSelectedRecipe] = useState(null); // State for the recipe in the modal
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportingRecipe, setReportingRecipe] = useState(null);
+  const [reportNotification, setReportNotification] = useState(null);
+  const [saveNotification, setSaveNotification] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -224,6 +226,8 @@ export default function DashboardPage() {
         if (insertFavoriteError.code === '23505') {
           console.warn(`Favorite link for user ${user.id} and recipe ${internalRecipeId} already exists.`);
           setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'already_saved' }));
+          setSaveNotification({ type: 'info', message: 'You’ve already saved this recipe.' });
+          setTimeout(() => setSaveNotification(null), 3000);
         } else {
           console.error("Error inserting into Favorites List:", insertFavoriteError);
           throw new Error(`Failed to insert into Favorites List: ${insertFavoriteError.message}`);
@@ -231,12 +235,16 @@ export default function DashboardPage() {
       } else {
         console.log(`Favorite link created for user ${user.id} and recipe ${internalRecipeId} (${mealDbRecipeName})`);
         setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'saved' }));
+        setSaveNotification({ type: 'success', message: 'Recipe saved successfully!' });
+        setTimeout(() => setSaveNotification(null), 3000);
       }
 
     } catch (error) {
       console.error("Detailed error in handleSaveRecipe:", error);
       // Ensure the specific error message is displayed if available
       setSaveStatus(prev => ({ ...prev, [mealDbRecipeId]: 'error', message: error.message || 'An unexpected error occurred' }));
+      setSaveNotification({ type: 'error', message: 'Failed to save recipe. Please try again.' });
+      setTimeout(() => setSaveNotification(null), 3000);
     }
   };
 
@@ -269,11 +277,15 @@ export default function DashboardPage() {
     ).then(
       (result) => {
         console.log('Email sent!', result.text);
+        setReportNotification({ type: 'success', message: 'Report submitted successfully!' });
       },
       (error) => {
         console.error('Email failed to send:', error.text);
+        setReportNotification({ type: 'error', message: 'Failed to submit report. Please try again.' });
       }
     );
+  
+    setTimeout(() => setReportNotification(null), 3000);
   };
   
 
@@ -435,6 +447,26 @@ export default function DashboardPage() {
           }}
           onSubmit={handleReportRecipe}
         />
+      )}
+
+      {reportNotification && (
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded shadow-md z-50 text-white transition-all duration-300
+          ${reportNotification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {reportNotification.message}
+        </div>
+      )}
+
+      {saveNotification && (
+        <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded shadow-md z-50 text-white transition-all duration-300
+          ${
+            saveNotification.type === 'success'
+              ? 'bg-green-600'
+              : saveNotification.type === 'info'
+              ? 'bg-blue-500'
+              : 'bg-red-600'
+          }`}>
+          {saveNotification.message}
+        </div>
       )}
     </div>
   );
