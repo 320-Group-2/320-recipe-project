@@ -98,10 +98,13 @@ graph LR
     *   Create a Supabase project.
     *   Create the necessary tables (`Recipe List`, `Favorites List`, ensure `Recipe List` has `RecipeID` (PK), `RecipeName` (text), `mealdb_id` (text), and `Favorites List` has `id` (PK), `userid` (FK to auth.users), `recipeid` (FK to Recipe List)). Enable Row Level Security (RLS) as needed.
     *   Create a `.env.local` file in the `reciearch` directory.
-    *   Add your Supabase Project URL and Anon Key to `.env.local`:
+    *   Add your Supabase Project URL and Anon Key and your email.js key, service_id, and template_id to `.env.local`:
         ```
         NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
         NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+        NEXT_PUBLIC_EMAIL_PUBLIC_KEY=YOUR_EMAILJS_PUBLIC_KEY
+        NEXT_PUBLIC_SERVICE_ID=YOUR_EMAILJS_SERVICE_ID
+        NEXT_PUBLIC_TEMPLATE_ID=YOUR_EMAILJS_TEMPLATE_ID
         ```
 4.  **Run the development server:**
     ```bash
